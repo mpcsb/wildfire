@@ -1,4 +1,5 @@
 import json
+import math
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,7 +53,7 @@ def visualize(contour_param, points):
 # square_result = find_points(square_contour, 1800)
 # triangle_result = find_points(triangle_contour, 3000) 
 # visualize(square_contour, square_result )
-# visualize(triangle_contour, triangle_result )
+# visualize(triangle_contour, triangle_result)
 
 def get_api_secret():
     with open('keys', 'r') as f:
@@ -77,3 +78,16 @@ def get_elevation(points):
         if 'results' in data:
             result.extend([r['elevation'] for r in data['results']])
     return result
+ 
+
+def lat_long_to_cartesian(lat, long):
+    # Earth's radius in km
+    R = 6371
+    # Convert latitude and longitude to radians
+    lat = math.radians(lat)
+    long = math.radians(long)
+    # Calculate cartesian coordinates
+    x = R * math.cos(lat) * math.cos(long)
+    y = R * math.cos(lat) * math.sin(long)
+    z = R * math.sin(lat)
+    return x, y, z

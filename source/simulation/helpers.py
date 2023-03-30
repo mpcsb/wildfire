@@ -7,5 +7,4 @@ def convert_to_cartesian(point):
     x = (R + alt) * cos(lat) * cos(lon)
     y = (R + alt) * cos(lat) * sin(lon)
     z = (R + alt) * sin(lat)
-    result = (round(x,1), round(y,1), round(z))
-    return result
+    return round(x,1), round(y,1), round(z) 
