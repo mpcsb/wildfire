@@ -130,6 +130,6 @@ axs[1].set_title("Wave speed field")
 plt.colorbar(axs[1].imshow(wave_speed_field, cmap='viridis', extent=[0, nx, 0, ny], origin='lower'), ax=axs[1], label="Wave speed")
 
 plt.tight_layout()
-plt.show()
+plt.savefig('medium.png')
 
 visualize_wave_propagation(wave_field_data)
