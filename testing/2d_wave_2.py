@@ -27,7 +27,7 @@ smooth_field = generate_medium(ny, nx)  # Swap nx and ny
 
 max_medium_value = np.max(smooth_field)
 
-c = 0.5  # Constant propagation speed (modify this based on your medium)
+c = 4  # Constant propagation speed (modify this based on your medium)
 print(dx, dy,  min(dx, dy) / (c * max_medium_value) * 0.5)
 dt = min(dx, dy) / (c * max_medium_value) * 0.5
  

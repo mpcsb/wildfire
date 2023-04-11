@@ -38,14 +38,13 @@ def find_points(contour_param, resolution_param, distance_param=100.0):
 
     return result
 
-def visualize(contour_param, points):
+def visualize(contour_param, points): 
+
     contour = Polygon(contour_param)
     x,y = contour.exterior.xy
-    plt.plot(x,y,color='red')
-
+    plt.plot(x,y,color='red') 
     x,y = zip(*points)
-    plt.scatter(x,y,s=2)
-
+    plt.scatter(x,y,s=2) 
     plt.show()
 
 # square_contour = [(40.712776, -74.005974), (40.712776, -73.005974), (41.712776, -73.005974), (41.712776, -74.005974)]
@@ -55,8 +54,8 @@ def visualize(contour_param, points):
 # visualize(square_contour, square_result )
 # visualize(triangle_contour, triangle_result)
 
-def get_api_secret():
-    with open('keys', 'r') as f:
+def get_api_secret(path=r'C:\Users\migue\Documents\01 projects\wildfire_pymc\wildfire\keys'):
+    with open(path, 'r') as f:
         for line in f:
             if line.startswith('KEY:'):
                 key = line.strip()[4:]
@@ -78,7 +77,7 @@ def get_elevation(points):
         if 'results' in data:
             result.extend([r['elevation'] for r in data['results']])
     return result
- 
+
 
 def lat_long_to_cartesian(lat, long):
     # Earth's radius in km
@@ -91,3 +90,54 @@ def lat_long_to_cartesian(lat, long):
     y = R * math.cos(lat) * math.sin(long)
     z = R * math.sin(lat)
     return x, y, z
+ 
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.ndimage.filters import gaussian_filter
+from scipy.interpolate import griddata
+
+def plot_smoothed_surface(merged_data, sigma=1):
+    # Convert the lat, lon, and elevation data into cartesian coordinates
+    coords = np.array([lat_long_to_cartesian(lat, lon) for lat, lon, elevation in merged_data])
+    x = coords[:, 0]
+    y = coords[:, 1]
+    z = np.array([elevation for lat, lon, elevation in merged_data])
+
+    # Create a grid for the x, y, and z data
+    xi = np.linspace(min(x), max(x), 100)
+    yi = np.linspace(min(y), max(y), 100)
+    xi, yi = np.meshgrid(xi, yi)
+    zi = griddata((x, y), z, (xi, yi), method='linear')
+
+    # Apply Gaussian filter to smooth the surface
+    smoothed_zi = gaussian_filter(zi, sigma)
+
+    # Plot the smoothed surface
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(xi, yi, smoothed_zi, cmap='viridis', linewidth=0)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Elevation (m)')
+
+    plt.show()
+    return xi, yi, smoothed_zi
+
+
+def merge_elevation_data(points, elevation_data):
+    merged_data = []
+    for (lat, lon), elevation in zip(points, elevation_data):
+        merged_data.append((lat, lon, elevation))
+    return merged_data
+
+# merged_data = merge_elevation_data(square_result, elevation_data)
+
+
+# # Plot the smoothed surface
+# x,y,z = plot_smoothed_surface(merged_data, sigma=0)
+# plt.plot(z)
+
+
