@@ -1,6 +1,8 @@
 import ee
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import matplotlib.pyplot as plt
 ee.Authenticate()
 ee.Initialize()
 
@@ -43,10 +45,7 @@ def classify_land_cover(results):
 
     return land_cover
 
-
-
-
-
+ 
 def original_terrain_cover_type(central_point, buffer_distance=500, width=1000, height=2000):
     center_point = ee.Geometry.Point(central_point)
 
@@ -102,10 +101,7 @@ def original_terrain_cover_type(central_point, buffer_distance=500, width=1000, 
 
     return classified_land_cover
 
-
-
-
-
+ 
 def process_multiple_points(central_points, buffer_distance=500, width=2000, height=2000):
     combined_land_cover = [] 
 
@@ -118,31 +114,41 @@ def process_multiple_points(central_points, buffer_distance=500, width=2000, hei
     
     return combined_land_cover
 
-
+#%%
 
 # Define the starting point (bottom-left corner of the grid)
 start_point = [-123.5987, 40.90715]
 start_point = [-124.060543,41.492324]
+import math
 
-# Define the spacing between points (in decimal degrees)
-spacing_lon = 0.01
-spacing_lat = 0.01
+start_point = [-124.060543, 41.492324]
+ 
 
-# Generate a 6x6 grid of central points
+# Define the grid size (number of rows and columns)
+n = 15
+m = 15
+ 
+
+spacing_lon = 0.015
+spacing_lat = 0.013
+
+# Generate an nxm grid of central points
 central_points = []
-for i in range(8):
-    for j in range(8):
-        lon = start_point[0] + j * spacing_lon
-        lat = start_point[1] + i * spacing_lat
+for i in range(n):
+    for j in range(m):
+        lon = start_point[0] + (j - (m // 2)) * spacing_lon
+        lat = start_point[1] + (i - (n // 2)) * spacing_lat
         central_points.append([lon, lat])
 
 
 # Process and combine the land cover data from all central points
-combined_land_cover = process_multiple_points(central_points)
+combined_land_cover = process_multiple_points(central_points, 
+                                              buffer_distance=500, 
+                                              width=1000, 
+                                              height=1000)
 
 
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+
 
 def plot(classified_land_cover): 
     import matplotlib.ticker as ticker
@@ -187,3 +193,5 @@ plot(combined_land_cover)
 plt.scatter([start_point[0]], [start_point[1]], c='red', s=100)
 
 set([cover_type for _, cover_type in combined_land_cover])
+
+# %%

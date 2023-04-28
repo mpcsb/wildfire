@@ -63,8 +63,10 @@ def get_api_secret(path=r'C:\Users\migue\Documents\01 projects\wildfire_pymc\wil
     return key
   
 
-def get_elevation(points):
-    KEY = get_api_secret()
+def get_elevation(points, KEY=None):
+    if KEY is None:
+        KEY = get_api_secret()
+    print(KEY)
     URL = 'https://maps.googleapis.com/maps/api/elevation/json'
     BATCH_SIZE = 512
     result = []
@@ -141,3 +143,77 @@ def merge_elevation_data(points, elevation_data):
 # plt.plot(z)
 
 
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import richdem as rd
+from scipy.ndimage import gaussian_filter
+
+# def create_test_array(side=10):
+#     """
+#     Create a test array of points in a square grid with valid coordinates.
+
+#     :param side: The number of points along each side of the square grid.
+#     :return: A numpy array of shape (side, side, 3) representing the coordinates of the points in the grid.
+#     """
+#     latitudes = np.linspace(47.6062, 47.6062 + 0.1, side)
+#     longitudes = np.linspace(-122.3321, -122.3321 + 0.1, side)
+#     altitudes = np.random.uniform(0, 100, size=(side, side))
+#     coordinates = np.zeros((side, side, 3))
+#     for i in range(side):
+#         for j in range(side):
+#             coordinates[i, j] = [latitudes[i], longitudes[j], altitudes[i, j]]
+#     return coordinates
+
+def smooth_terrain(coordinates: np.ndarray, sigma: float):
+    """
+    Smooth the terrain surface represented by the coordinates array using a Gaussian filter.
+
+    :param coordinates: A numpy array representing the terrain surface.
+    :param sigma: The standard deviation of the Gaussian kernel used by the filter.
+    :return: A smoothed version of the input coordinates array.
+    """
+    smoothed_coordinates = coordinates.copy()
+    smoothed_coordinates[:,:,2] = gaussian_filter(coordinates[:,:,2], sigma=sigma)
+    return smoothed_coordinates
+
+def calculate_slope_aspect(terrain: np.ndarray):
+    """
+    Calculate the slope and aspect of a terrain represented by a numpy array using RichDEM.
+
+    :param terrain: A numpy array representing the terrain surface.
+    :return: Two numpy arrays representing the calculated slope and aspect of the terrain.
+    """
+    rd_terrain = rd.rdarray(terrain[:,:,2], no_data=-9999)
+    slope = rd.TerrainAttribute(rd_terrain, attrib='slope_riserun')
+    aspect = rd.TerrainAttribute(rd_terrain, attrib='aspect')
+    return slope, aspect
+
+
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+import matplotlib.pyplot as plt
+
+
+def visualize_terrain(coordinates: np.ndarray, slope: np.ndarray, aspect: np.ndarray, polygon_coords: np.ndarray):
+    # Get unique latitudes and longitudes
+    unique_lats = np.unique(coordinates[:, :, 0])
+    unique_lons = np.unique(coordinates[:, :, 1])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+    ax1.imshow(slope, extent=[unique_lons.min(), unique_lons.max(), unique_lats.min(), unique_lats.max()], origin='lower')
+    ax1.plot(polygon_coords[:, 0], polygon_coords[:, 1], 'r-', linewidth=2)  # Plot the polygon on top of the slope
+    ax1.set_title('Slope')
+    ax1.set_xlabel('Longitude')
+    ax1.set_ylabel('Latitude')
+
+    ax2.imshow(aspect, extent=[unique_lons.min(), unique_lons.max(), unique_lats.min(), unique_lats.max()], origin='lower')
+    ax2.plot(polygon_coords[:, 0], polygon_coords[:, 1], 'r-', linewidth=2)  # Plot the polygon on top of the aspect
+    ax2.set_title('Aspect')
+    ax2.set_xlabel('Longitude')
+    ax2.set_ylabel('Latitude')
+
+    plt.show()
